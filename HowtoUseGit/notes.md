@@ -248,3 +248,29 @@ rm  -r  *
 rm  -rf  要删除的文件名或目录
 ```
 
+### 远程仓库
+
+显示所有远程仓库：
+
+```shell
+git remote -v
+```
+
+添加远程版本库：`shortname `为本地的版本库
+
+```shell
+git remote add [shortname] [url]
+```
+
+其他相关命令：
+
+```shell
+git remote rm name  # 删除远程仓库
+git remote rename old_name new_name  # 修改仓库名
+```
+
+```shell
+# 提交到 Github
+$ git remote add origin git@github.com:tianqixin/runoob-git-test.git
+$ git push -u origin master
+```
