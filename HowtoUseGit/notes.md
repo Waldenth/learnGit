@@ -274,3 +274,66 @@ git remote rename old_name new_name  # 修改仓库名
 $ git remote add origin git@github.com:tianqixin/runoob-git-test.git
 $ git push -u origin master
 ```
+
+#### 删除远程仓库
+
+删除远程仓库你可以使用命令：
+
+```shell
+git remote rm [别名]
+```
+
+#### 实例
+
+```shell
+$ git remote -v
+origin    git@github.com:tianqixin/runoob-git-test.git (fetch)
+origin    git@github.com:tianqixin/runoob-git-test.git (push)
+
+# 添加仓库 origin2
+$ git remote add origin2 git@github.com:tianqixin/runoob-git-test.git
+
+$ git remote -v
+origin    git@github.com:tianqixin/runoob-git-test.git (fetch)
+origin    git@github.com:tianqixin/runoob-git-test.git (push)
+origin2    git@github.com:tianqixin/runoob-git-test.git (fetch)
+origin2    git@github.com:tianqixin/runoob-git-test.git (push)
+
+# 删除仓库 origin2
+$ git remote rm origin2
+$ git remote -v
+origin    git@github.com:tianqixin/runoob-git-test.git (fetch)
+origin    git@github.com:tianqixin/runoob-git-test.git (push)
+```
+
+### SSH密钥配置
+
+```shell
+cd ~/.ssh
+```
+
+**如果之前有密钥且不用了**
+
+```shell
+rm  id_rsa
+rm  id_rsa.pub
+```
+
+**生成**
+
+```shell
+ ssh-keygen -t rsa -C "waldenth@outlook.com"
+```
+
+**.pub是公钥**
+
+```shell
+cat id_rsa.pub
+```
+
+**VPN下如果SSH被拒绝访问Github，使用HTTPS**
+
+```shell
+git remote add LeetCodeNote-https https://github.com/Waldenth/My-LeetCode.git
+git push [-u] LeetCodeNote-https master
+```
