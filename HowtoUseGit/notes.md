@@ -1222,3 +1222,45 @@ To github.com:michaelliao/learngit.git
 - 在本地创建和远程分支对应的分支，使用`git checkout -b branch-name origin/branch-name`，本地和远程分支的名称最好一致；
 - 建立本地分支和远程分支的关联，使用`git branch --set-upstream branch-name origin/branch-name`；
 - 从远程抓取分支，使用`git pull`，如果有冲突，要先处理冲突。
+
+### 远程分支
+
+查看一下现在的分支状态:
+
+```shell
+$ git branch
+* dbg_lichen_star
+  master
+  release
+```
+
+星号(*)表示当前所在分支。现在的状态是成功创建的新的分支并且已经切换到新分支上。
+
+**创建远程分支**
+
+把新建的本地分支push到远程服务器，远程分支与本地分支同名（当然可以随意起名）：
+
+```shell
+$ git push origin dbg_lichen_star:dbg_lichen_star
+$ git push learnGit-https dev
+```
+
+
+使用`git branch -a`查看所有分支，会看到`remotes/origin/dbg_lichen_star`这个远程分支，说明新建远程分支成功。
+
+**删除远程分支**
+我比较喜欢的简单方式，推送一个空分支到远程分支，其实就相当于删除远程分支：
+
+```shell
+$ git push origin :dbg_lichen_star
+```
+
+
+也可以使用：
+
+```shell
+$ git push origin --delete dbg_lichen_star
+```
+
+
+这两种方式都可以删除指定的远程分支
