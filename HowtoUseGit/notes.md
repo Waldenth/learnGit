@@ -11,6 +11,26 @@ $ git config --global user.email "email@example.com"
 
 注意`git config`命令的`--global`参数，用了这个参数，表示你这台机器上所有的Git仓库都会使用这个配置，当然也可以对某个仓库指定不同的用户名和Email地址。
 
+输入
+
+```shell
+git config --list
+```
+
+可以查看配置的一些东西。可以看到`user.name` 和`user.email` 分别是什么
+
+**重命名**
+
+这边给出了`--repalce-all` 这个东西。
+
+然后我尝试着用
+
+```shell
+$ git config --global --replace-all user.email "输入你的邮箱" 
+
+$ git config --global --replace-all user.name "输入你的用户名"
+```
+
 ### 仓库初始化
 
 初始化一个Git仓库，使用`git init`命令，当前目录成为仓库.
@@ -18,6 +38,32 @@ $ git config --global user.email "email@example.com"
 文件一定要放到`learngit`目录下（子目录也行），因为这是一个Git仓库，放到其他地方Git再厉害也找不到这个文件。
 
 和把大象放到冰箱需要3步相比，把一个文件放到Git仓库只需要两步。
+
+什么是版本库呢？版本库又名仓库，英文名**repository**，你可以简单理解成一个目录，这个目录里面的所有文件都可以被Git管理起来，每个文件的修改、删除，Git都能跟踪，以便任何时刻都可以追踪历史，或者在将来某个时刻可以“还原”。
+
+所以，创建一个版本库非常简单，首先，选择一个合适的地方，创建一个空目录：
+
+```shell
+$ mkdir learngit
+$ cd learngit
+$ pwd
+/Users/michael/learngit
+```
+
+`pwd`命令用于显示当前目录。在我的Mac上，这个仓库位于`/Users/michael/learngit`。
+
+ 如果你使用Windows系统，为了避免遇到各种莫名其妙的问题，请确保目录名（包括父目录）不包含中文。
+
+第二步，通过`git init`命令把这个目录变成Git可以管理的仓库：
+
+```shell
+$ git init
+Initialized empty Git repository in /Users/michael/learngit/.git/
+```
+
+瞬间Git就把仓库建好了，而且告诉你是一个空的仓库（empty Git repository），细心的读者可以发现当前目录下多了一个`.git`的目录，这个目录是Git来跟踪管理版本库的，没事千万不要手动修改这个目录里面的文件，不然改乱了，就把Git仓库给破坏了。
+
+如果你没有看到`.git`目录，那是因为这个目录默认是隐藏的，用`ls -ah`命令就可以看见。
 
 ### 文件入库
 
@@ -92,7 +138,7 @@ HEAD is now at e475afc add distributed
 
 办法其实还是有的，只要上面的命令行窗口还没有被关掉，你就可以顺着往上找啊找啊，找到那个`append GPL`的`commit id`是`1094adb...`，于是就可以指定回到未来的某个版本：
 
-```
+```shell
 $ git reset --hard 1094a
 HEAD is now at 83b0afe append GPL
 ```
@@ -337,3 +383,158 @@ cat id_rsa.pub
 git remote add LeetCodeNote-https https://github.com/Waldenth/My-LeetCode.git
 git push [-u] LeetCodeNote-https master
 ```
+
+### 删除本地仓库
+
+**删除仓库，就是需要删除仓库文件夹下隐藏的 .git 文件夹！！！**
+
+进入项目所在目录，打开git bash，开始删除本地仓库：
+
+显示所有本地分支（初始化时只有一个master分支）
+
+```shell
+$ git branch
+```
+
+初始化本地版本库（重新初始化一次，可以忽略）
+
+```shell
+$ git init
+```
+
+找到目录下隐藏的 .git
+
+```shell
+$ ls -ah
+```
+
+删除 .git
+
+```shell
+$ rm -rf .git
+```
+
+1. 可以看到master分支已经删除
+
+```shell
+$ ls -a
+```
+
+### 创建与合并分支
+
+在[版本回退](https://www.liaoxuefeng.com/wiki/896043488029600/897013573512192)里，你已经知道，每次提交，Git都把它们串成一条时间线，这条时间线就是一个分支。截止到目前，只有一条时间线，在Git里，这个分支叫主分支，即`master`分支。`HEAD`严格来说不是指向提交，而是指向`master`，`master`才是指向提交的，所以，`HEAD`指向的就是当前分支。
+
+一开始的时候，`master`分支是一条线，Git用`master`指向最新的提交，再用`HEAD`指向`master`，就能确定当前分支，以及当前分支的提交点：
+
+![git-br-initial](assets/0.png)
+
+每次提交，`master`分支都会向前移动一步，这样，随着你不断提交，`master`分支的线也越来越长。
+
+当我们创建新的分支，例如`dev`时，Git新建了一个指针叫`dev`，指向`master`相同的提交，再把`HEAD`指向`dev`，就表示当前分支在`dev`上：
+
+![git-br-create](assets/l.png)
+
+你看，Git创建一个分支很快，因为除了增加一个`dev`指针，改改`HEAD`的指向，工作区的文件都没有任何变化！
+
+不过，从现在开始，对工作区的修改和提交就是针对`dev`分支了，比如新提交一次后，`dev`指针往前移动一步，而`master`指针不变：
+
+![git-br-dev-fd](assets/l.png)
+
+假如我们在`dev`上的工作完成了，就可以把`dev`合并到`master`上。Git怎么合并呢？最简单的方法，就是直接把`master`指向`dev`的当前提交，就完成了合并：
+
+![git-br-ff-merge](assets/0-1600091003688.png)
+
+所以Git合并分支也很快！就改改指针，工作区内容也不变！
+
+合并完分支后，甚至可以删除`dev`分支。删除`dev`分支就是把`dev`指针给删掉，删掉后，我们就剩下了一条`master`分支：
+
+![git-br-rm](assets/0-1600091003684.png)
+
+真是太神奇了，你看得出来有些提交是通过分支完成的吗？
+
+#### 分支实战
+
+下面开始实战。
+
+首先，我们创建`dev`分支，然后切换到`dev`分支：
+
+```shell
+$ git checkout -b dev
+Switched to a new branch 'dev'
+```
+
+`git checkout`命令加上`-b`参数表示创建并切换，相当于以下两条命令：
+
+```shell
+$ git branch dev
+$ git checkout dev
+Switched to branch 'dev'
+```
+
+然后，用`git branch`命令查看当前分支：
+
+```shell
+$ git branch
+* dev
+  master
+```
+
+`git branch`命令会列出所有分支，当前分支前面会标一个`*`号。
+
+然后，我们就可以在`dev`分支上正常提交，比如对`readme.txt`做个修改，加上一行：
+
+```
+Creating a new branch is quick.
+```
+
+然后提交：
+
+```shell
+$ git add readme.txt 
+$ git commit -m "branch test"
+[dev b17d20e] branch test
+ 1 file changed, 1 insertion(+)
+```
+
+现在，`dev`分支的工作完成，我们就可以切换回`master`分支：
+
+```
+$ git checkout master
+Switched to branch 'master'
+```
+
+切换回`master`分支后，再查看一个`readme.txt`文件，刚才添加的内容不见了！因为那个提交是在`dev`分支上，而`master`分支此刻的提交点并没有变：
+
+![git-br-on-master](assets/0-1600091003687.png)
+
+现在，我们把`dev`分支的工作成果合并到`master`分支上：
+
+```
+$ git merge dev
+Updating d46f35e..b17d20e
+Fast-forward
+ readme.txt | 1 +
+ 1 file changed, 1 insertion(+)
+```
+
+`git merge`命令用于合并指定分支到当前分支。合并后，再查看`readme.txt`的内容，就可以看到，和`dev`分支的最新提交是完全一样的。
+
+注意到上面的`Fast-forward`信息，Git告诉我们，这次合并是“快进模式”，也就是直接把`master`指向`dev`的当前提交，所以合并速度非常快。
+
+当然，也不是每次合并都能`Fast-forward`，我们后面会讲其他方式的合并。
+
+合并完成后，就可以放心地删除`dev`分支了：
+
+```
+$ git branch -d dev
+Deleted branch dev (was b17d20e).
+```
+
+删除后，查看`branch`，就只剩下`master`分支了：
+
+```
+$ git branch
+* master
+```
+
+因为创建、合并和删除分支非常快，所以Git鼓励你使用分支完成某个任务，合并后再删掉分支，这和直接在`master`分支上工作效果是一样的，但过程更安全。
