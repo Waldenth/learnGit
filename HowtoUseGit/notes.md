@@ -809,7 +809,7 @@ $ git log --graph --pretty=oneline --abbrev-commit
 
 当你接到一个修复一个代号101的bug的任务时，很自然地，你想创建一个分支`issue-101`来修复它，但是，等等，当前正在`dev`上进行的工作还没有提交：
 
-```
+```shell
 $ git status
 On branch dev
 Changes to be committed:
@@ -828,7 +828,7 @@ Changes not staged for commit:
 
 幸好，Git还提供了一个`stash`功能，可以把当前工作现场“储藏”起来，等以后恢复现场后继续工作：
 
-```
+```shell
 $ git stash
 Saved working directory and index state WIP on dev: f52c633 add merge
 ```
@@ -837,7 +837,7 @@ Saved working directory and index state WIP on dev: f52c633 add merge
 
 首先确定要在哪个分支上修复bug，假定需要在`master`分支上修复，就从`master`创建临时分支：
 
-```
+```shell
 $ git checkout master
 Switched to branch 'master'
 Your branch is ahead of 'origin/master' by 6 commits.
@@ -849,7 +849,7 @@ Switched to a new branch 'issue-101'
 
 现在修复bug，需要把“Git is free software ...”改为“Git is a free software ...”，然后提交：
 
-```
+```shell
 $ git add readme.txt 
 $ git commit -m "fix bug 101"
 [issue-101 4c805e2] fix bug 101
@@ -858,7 +858,7 @@ $ git commit -m "fix bug 101"
 
 修复完成后，切换到`master`分支，并完成合并，最后删除`issue-101`分支：
 
-```
+```shell
 $ git switch master
 Switched to branch 'master'
 Your branch is ahead of 'origin/master' by 6 commits.
@@ -883,7 +883,7 @@ nothing to commit, working tree clean
 
 工作区是干净的，刚才的工作现场存到哪去了？用`git stash list`命令看看：
 
-```
+```shell
 $ git stash list
 stash@{0}: WIP on dev: f52c633 add merge
 ```
@@ -894,7 +894,7 @@ stash@{0}: WIP on dev: f52c633 add merge
 
 另一种方式是用`git stash pop`，恢复的同时把stash内容也删了：
 
-```
+```shell
 $ git stash pop
 On branch dev
 Changes to be committed:
@@ -913,13 +913,13 @@ Dropped refs/stash@{0} (5d677e2ee266f39ea296182fb2354265b91b3b2a)
 
 再用`git stash list`查看，就看不到任何stash内容了：
 
-```
+```shell
 $ git stash list
 ```
 
 你可以多次stash，恢复的时候，先用`git stash list`查看，然后恢复指定的stash，用命令：
 
-```
+```shell
 $ git stash apply stash@{0}
 ```
 
@@ -937,7 +937,7 @@ $ git stash apply stash@{0}
 
 为了方便操作，Git专门提供了一个`cherry-pick`命令，让我们能复制一个特定的提交到当前分支：
 
-```
+```shell
 $ git branch
 * dev
   master
@@ -950,10 +950,275 @@ Git自动给dev分支做了一次提交，注意这次提交的commit是`1d4b803
 
 有些聪明的童鞋会想了，既然可以在master分支上修复bug后，在dev分支上可以“重放”这个修复过程，那么直接在dev分支上修复bug，然后在master分支上“重放”行不行？当然可以，不过你仍然需要`git stash`命令保存现场，才能从dev分支切换到master分支。
 
-### 小结
+#### 小结
 
 修复bug时，我们会通过创建新的bug分支进行修复，然后合并，最后删除；
 
 当手头工作没有完成时，先把工作现场`git stash`一下，然后去修复bug，修复后，再`git stash pop`，回到工作现场；
 
 在master分支上修复的bug，想要合并到当前dev分支，可以用`git cherry-pick `命令，把bug提交的修改“复制”到当前分支，避免重复劳动。
+
+### Feature分支
+
+------
+
+软件开发中，总有无穷无尽的新的功能要不断添加进来。
+
+添加一个新功能时，你肯定不希望因为一些实验性质的代码，把主分支搞乱了，所以，每添加一个新功能，最好新建一个feature分支，在上面开发，完成后，合并，最后，删除该feature分支。
+
+现在，你终于接到了一个新任务：开发代号为Vulcan的新功能，该功能计划用于下一代星际飞船。
+
+于是准备开发：
+
+```shell
+$ git switch -c feature-vulcan
+Switched to a new branch 'feature-vulcan'
+```
+
+5分钟后，开发完毕：
+
+```
+$ git add vulcan.py
+
+$ git status
+On branch feature-vulcan
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+	new file:   vulcan.py
+
+$ git commit -m "add feature vulcan"
+[feature-vulcan 287773e] add feature vulcan
+ 1 file changed, 2 insertions(+)
+ create mode 100644 vulcan.py
+```
+
+切回`dev`，准备合并：
+
+```shell
+$ git switch dev
+```
+
+一切顺利的话，feature分支和bug分支是类似的，合并，然后删除。
+
+但是！
+
+就在此时，接到上级命令，因经费不足，新功能必须取消！
+
+虽然白干了，但是这个包含机密资料的分支还是必须就地销毁：
+
+```shell
+$ git branch -d feature-vulcan
+error: The branch 'feature-vulcan' is not fully merged.
+If you are sure you want to delete it, run 'git branch -D feature-vulcan'.
+```
+
+销毁失败。Git友情提醒，`feature-vulcan`分支还没有被合并，如果删除，将丢失掉修改，如果要强行删除，需要使用大写的`-D`参数。。
+
+现在我们强行删除：
+
+```shell
+$ git branch -D feature-vulcan
+Deleted branch feature-vulcan (was 287773e).
+```
+
+终于删除成功！
+
+#### 小结
+
+开发一个新feature，最好新建一个分支；
+
+如果要丢弃一个没有被合并过的分支，可以通过`git branch -D `强行删除。
+
+
+
+### 多人协作
+
+------
+
+当你从远程仓库克隆时，实际上Git自动把本地的`master`分支和远程的`master`分支对应起来了，并且，远程仓库的默认名称是`origin`。
+
+要查看远程库的信息，用`git remote`：
+
+```shell
+$ git remote
+origin
+```
+
+或者，用`git remote -v`显示更详细的信息：
+
+```shell
+$ git remote -v
+origin  git@github.com:michaelliao/learngit.git (fetch)
+origin  git@github.com:michaelliao/learngit.git (push)
+```
+
+上面显示了可以抓取和推送的`origin`的地址。如果没有推送权限，就看不到push的地址。
+
+#### 推送分支
+
+推送分支，就是把该分支上的所有本地提交推送到远程库。推送时，要指定本地分支，这样，Git就会把该分支推送到远程库对应的远程分支上：
+
+```shell
+$ git push origin master
+```
+
+如果要推送其他分支，比如`dev`，就改成：
+
+```shell
+$ git push origin dev
+```
+
+但是，并不是一定要把本地分支往远程推送，那么，哪些分支需要推送，哪些不需要呢？
+
+- `master`分支是主分支，因此要时刻与远程同步；
+- `dev`分支是开发分支，团队所有成员都需要在上面工作，所以也需要与远程同步；
+- bug分支只用于在本地修复bug，就没必要推到远程了，除非老板要看看你每周到底修复了几个bug；
+- feature分支是否推到远程，取决于你是否和你的小伙伴合作在上面开发。
+
+总之，就是在Git中，分支完全可以在本地自己藏着玩，是否推送，视你的心情而定！
+
+#### 抓取分支
+
+多人协作时，大家都会往`master`和`dev`分支上推送各自的修改。
+
+现在，模拟一个你的小伙伴，可以在另一台电脑（注意要把SSH Key添加到GitHub）或者同一台电脑的另一个目录下克隆：
+
+```shell
+$ git clone git@github.com:michaelliao/learngit.git
+Cloning into 'learngit'...
+remote: Counting objects: 40, done.
+remote: Compressing objects: 100% (21/21), done.
+remote: Total 40 (delta 14), reused 40 (delta 14), pack-reused 0
+Receiving objects: 100% (40/40), done.
+Resolving deltas: 100% (14/14), done.
+```
+
+当你的小伙伴从远程库clone时，默认情况下，你的小伙伴只能看到本地的`master`分支。不信可以用`git branch`命令看看：
+
+```shell
+$ git branch
+* master
+```
+
+现在，你的小伙伴要在`dev`分支上开发，就必须创建远程`origin`的`dev`分支到本地，于是他用这个命令创建本地`dev`分支：
+
+**命令表明创建远程`origin`的`dev`分支到本地,如果要pull还需建立链接(下文)**
+
+```shell
+$ git checkout -b dev origin/dev
+```
+
+现在，他就可以在`dev`上继续修改，然后，时不时地把`dev`分支`push`到远程：
+
+```shell
+$ git add env.txt
+
+$ git commit -m "add env"
+[dev 7a5e5dd] add env
+ 1 file changed, 1 insertion(+)
+ create mode 100644 env.txt
+
+$ git push origin dev
+Counting objects: 3, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 308 bytes | 308.00 KiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0)
+To github.com:michaelliao/learngit.git
+   f52c633..7a5e5dd  dev -> dev
+```
+
+
+
+你的小伙伴已经向`origin/dev`分支推送了他的提交，而碰巧你也对同样的文件作了修改，并试图推送：
+
+```shell
+$ cat env.txt
+env
+
+$ git add env.txt
+
+$ git commit -m "add new env"
+[dev 7bd91f1] add new env
+ 1 file changed, 1 insertion(+)
+ create mode 100644 env.txt
+
+$ git push origin dev
+To github.com:michaelliao/learngit.git
+ ! [rejected]        dev -> dev (non-fast-forward)
+error: failed to push some refs to 'git@github.com:michaelliao/learngit.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. Integrate the remote changes (e.g.
+hint: 'git pull ...') before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+```
+
+推送失败，因为你的小伙伴的最新提交和你试图推送的提交有冲突，解决办法也很简单，Git已经提示我们，先用`git pull`把最新的提交从`origin/dev`抓下来，然后，在本地合并，解决冲突，再推送：
+
+```shell
+$ git pull
+There is no tracking information for the current branch.
+Please specify which branch you want to merge with.
+See git-pull(1) for details.
+
+    git pull <remote> <branch>
+
+If you wish to set tracking information for this branch you can do so with:
+
+    git branch --set-upstream-to=origin/<branch> dev
+```
+
+`git pull`也失败了，**原因是没有指定本地`dev`分支与远程`origin/dev`分支的链接**，根据提示，设置`dev`和`origin/dev`的链接：
+
+```shell
+$ git branch --set-upstream-to=origin/dev dev
+Branch 'dev' set up to track remote branch 'dev' from 'origin'.
+```
+
+再pull：
+
+```shell
+$ git pull
+Auto-merging env.txt
+CONFLICT (add/add): Merge conflict in env.txt
+Automatic merge failed; fix conflicts and then commit the result.
+```
+
+这回`git pull`成功，但是合并有冲突，需要手动解决，解决的方法和分支管理中的[解决冲突](http://www.liaoxuefeng.com/wiki/896043488029600/900004111093344)完全一样。解决后，提交，再push：
+
+```shell
+$ git commit -m "fix env conflict"
+[dev 57c53ab] fix env conflict
+
+$ git push origin dev
+Counting objects: 6, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (6/6), 621 bytes | 621.00 KiB/s, done.
+Total 6 (delta 0), reused 0 (delta 0)
+To github.com:michaelliao/learngit.git
+   7a5e5dd..57c53ab  dev -> dev
+```
+
+
+
+因此，多人协作的工作模式通常是这样：
+
+1. 首先，可以试图用`git push origin `推送自己的修改；
+2. 如果推送失败，则因为远程分支比你的本地更新，需要先用`git pull`试图合并；
+3. 如果合并有冲突，则解决冲突，并在本地提交；
+4. 没有冲突或者解决掉冲突后，再用`git push origin `推送就能成功！
+
+如果`git pull`提示`no tracking information`，则说明本地分支和远程分支的链接关系没有创建，用命令`git branch --set-upstream-to  origin/`。
+
+这就是多人协作的工作模式，一旦熟悉了，就非常简单。
+
+#### 小结
+
+- 查看远程库信息，使用`git remote -v`；
+- 本地新建的分支如果不推送到远程，对其他人就是不可见的；
+- 从本地推送分支，使用`git push origin branch-name`，如果推送失败，先用`git pull`抓取远程的新提交；
+- 在本地创建和远程分支对应的分支，使用`git checkout -b branch-name origin/branch-name`，本地和远程分支的名称最好一致；
+- 建立本地分支和远程分支的关联，使用`git branch --set-upstream branch-name origin/branch-name`；
+- 从远程抓取分支，使用`git pull`，如果有冲突，要先处理冲突。
