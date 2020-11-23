@@ -247,7 +247,9 @@ git rm *
 
 **注意！！！**
 
-如果直接用文件管理器删除了文件或者文件夹，直接`git add`再`git commit`就行，无需执行`git -rm`确认
+如果直接用文件管理器删除了文件，直接`git add *`再`git commit`就行，无需执行`git -rm`确认
+
+**但是，如果是删除的某个文件夹及文件，不能用git add ***,如`test`文件夹，删除文件夹，需要`git add test *`，再`commit` 
 
 
 
@@ -365,6 +367,17 @@ $ git remote -v
 origin    git@github.com:tianqixin/runoob-git-test.git (fetch)
 origin    git@github.com:tianqixin/runoob-git-test.git (push)
 ```
+
+如果从远程clone一个仓库，会默认配置远程仓库名为origin，可以更改，例如：
+
+```bash
+ git remote -v  # 获取远程仓库名
+ git remote rm origin # 删除远程默认仓库（以便重命名）
+ git remote add CSAPP-https https://github.com/Waldenth/CSApp-Homework-answer.git
+# 添加远程库，命名为CSAPP-https
+```
+
+
 
 ### SSH密钥配置
 
