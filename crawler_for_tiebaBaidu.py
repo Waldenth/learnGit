@@ -2,9 +2,11 @@
 # Author: Aaron(Waldenth)
 # 2021-02-02
 # Attention: 正则表达式可能需要随百度贴吧页面升级而更新,不保证长期有效
+# fix bug :  使用贴吧数据库的楼层作为楼层标准
 
 import requests
 import re
+import time
 
 # html清洗处理类
 class Tool:
@@ -31,6 +33,8 @@ class Tool:
     postContentStr='<div id="post_content_.*?>(.*?)</div>'
     #贴子作者
     postAuthorStr='<li class="d_name" data-field=.*?>(.*?)</li>'
+    #贴子在贴吧数据库中的楼层
+    floorStr='class="tail-info">([0-9]{1,8}楼)</span><span'
 
     def replace(self,x):
         x = re.sub(self.removeImg,"",x)
@@ -68,7 +72,7 @@ class CrawlerBDTB:
         self.tool = Tool()
         #全局file变量，文件写入操作对象
         self.file = None
-        #楼层标号，初始为1
+        #楼层标号，初始为1 (作废:百度抽楼,这是按照爬到的现存的贴子数计算楼层)
         self.floor = 1
         #默认的标题
         self.defaultTitle = "DataSet"
@@ -128,22 +132,28 @@ class CrawlerBDTB:
         # needMainText: 获取贴子主体信息;0只获取作者,1额外获取贴子内容
         if needMainText==0:
             items=self.tool.filter(self.tool.postAuthorStr,page,1)
+            floors=self.tool.filter(self.tool.floorStr,page,1)
+            length=len(items)
+            if len(items)!=len(floors):
+                print("Warning: floor and text is not matched, it's very likely that something went wrong!")
+                length=(len(items) if len(items)<=len(floors) else len(floors))
             contents=[]
-            for item in items:
-                content = "\n"+self.tool.replace(item)+"\n"
+            for i in range(0,length):
+                content = "\n"+self.tool.replace(floors[i])+"\n"+self.tool.replace(items[i])+"\n"
                 contents.append(content.encode('utf-8'))
             return contents
         else:
             authorItems=self.tool.filter(self.tool.postAuthorStr,page,1)
+            floors=self.tool.filter(self.tool.floorStr,page,1)
             mainTextItems=self.tool.filter(self.tool.postContentStr,page,1)
             length=len(authorItems)
-            if len(authorItems)!=len(mainTextItems):
-                print("Warning: Length is different")
-                length=(len(authorItems) if len(authorItems)<=len(mainTextItems) else len(mainTextItems))
+            if len(authorItems)!=len(mainTextItems) or len(authorItems)!=len(floors) or len(mainTextItems)!=len(floors):
+                print("Warning: floor and text and author-info is not matched, it's very likely that something went wrong!")
+                length=min(len(authorItems),min(len(mainTextItems),len(floors)))
             print("Log: length is "+str(length))
             contents=[]
             for i in range(0,length):
-                content = "\n"+self.tool.replace(authorItems[i])+"\n"+self.tool.replace(mainTextItems[i])+"\n"
+                content = "\n"+self.tool.replace(floors[i])+"\n"+self.tool.replace(authorItems[i])+"\n"+self.tool.replace(mainTextItems[i])+"\n"
                 contents.append(content.encode('utf-8'))
             return contents
     
@@ -181,6 +191,7 @@ class CrawlerBDTB:
         except IOError:
             print ("IO Error" )
         finally:
+            time.sleep(3)
             self.file.close()
             print ("success!")
 
@@ -191,6 +202,6 @@ if __name__ == "__main__":
     baseURL=str(baseURL)
     print("Please confirm the url : "+baseURL)
     seeLZ = '0' # 关闭只看楼主
-    floorTag = '1' # 开启楼层分隔符
+    floorTag = '0' # 楼层分隔符,由于采用贴吧数据库楼层信息,作废
     crawler = CrawlerBDTB(baseURL,seeLZ,floorTag)
     crawler.start()
